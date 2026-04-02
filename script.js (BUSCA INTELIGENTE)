@@ -1,0 +1,72 @@
+let banco = [];
+
+// LISTA DOS CLIENTES
+const arquivos = [
+  "dados/bolsa.json",
+  "dados/cliente2.json"
+];
+
+// CARREGA TODOS
+async function carregarDados() {
+  for (let arquivo of arquivos) {
+    const res = await fetch(arquivo);
+    const json = await res.json();
+    banco.push(json);
+  }
+}
+
+// BUSCA INTELIGENTE
+function buscar() {
+  const texto = document.getElementById("busca").value.toLowerCase();
+
+  let familia = texto.match(/familia (\d+)/)?.[1];
+  let fabrica = texto.match(/fabrica (\d+)/)?.[1];
+  let cliente = texto.match(/(bolsa|cliente2)/)?.[1]?.toUpperCase();
+
+  let resultado = [];
+
+  banco.forEach(c => {
+    if (c.cliente === cliente) {
+      let nomeFabrica = "Fabrica " + fabrica;
+
+      let dados = c.fabricas[nomeFabrica];
+
+      if (dados) {
+        dados.forEach(item => {
+          if (item.familia === familia) {
+            resultado.push({
+              cliente: c.cliente,
+              fabrica: nomeFabrica,
+              ...item
+            });
+          }
+        });
+      }
+    }
+  });
+
+  exibir(resultado);
+}
+
+// EXIBIÇÃO BONITA
+function exibir(dados) {
+  const div = document.getElementById("resultado");
+
+  if (!dados.length) {
+    div.innerHTML = "❌ Nenhum resultado encontrado";
+    return;
+  }
+
+  div.innerHTML = dados.map(d => `
+    <div style="margin-bottom:15px;">
+      <strong>Cliente:</strong> ${d.cliente}<br>
+      <strong>Fábrica:</strong> ${d.fabrica}<br>
+      <strong>Família:</strong> ${d.familia}<br>
+      <strong>Registro:</strong> ${d.registro}<br>
+      <strong>Validade:</strong> ${d.validade}<br>
+      <strong>Manutenção:</strong> ${d.manutencao}
+    </div>
+  `).join("");
+}
+
+carregarDados();
